@@ -22,9 +22,6 @@ use wasmer_vm::libcalls::LibCall;
 /// Symbol exported from the dynamic library which points to the trampoline table.
 pub const WASMER_TRAMPOLINES_SYMBOL: &[u8] = b"WASMER_TRAMPOLINES";
 
-/// Internal symbol with local scope that can't be preempted by external symbols.
-const WASMER_TRAMPOLINES_SYMBOL_INTERNAL: &[u8] = b"__WASMER_TRAMPOLINE0";
-
 // SystemV says that both x16 and x17 are available as intra-procedural scratch
 // registers but Apple's ABI restricts us to use x17.
 // ADRP x17, #...        11 00 00 90
