@@ -293,3 +293,6 @@ required-features = ["cranelift"]
 name = "features"
 path = "examples/features.rs"
 required-features = ["cranelift"]
+
+[patch.crates-io]
+object = { git = "https://github.com/Amanieu/object", branch = "arm64_macho_write" }

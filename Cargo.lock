@@ -121,7 +121,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "libc",
  "miniz_oxide",
- "object",
+ "object 0.27.1",
  "rustc-demangle",
 ]
 
@@ -1044,12 +1044,12 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "indexmap"
-version = "1.7.0"
+version = "1.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc633605454125dec4b66843673f01c7df2b89479b32e0ed634e43a91cff62a5"
+checksum = "824845a0bf897a9042383849b02c1bc219c2383772efcd5c6f9766fa4b81aef3"
 dependencies = [
  "autocfg",
- "hashbrown 0.11.2",
+ "hashbrown 0.9.1",
  "serde",
 ]
 
@@ -1410,7 +1410,16 @@ version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67ac1d3f9a1d3616fd9a60c8d74296f22406a238b6a72f5cc1e6f314df4ffbf9"
 dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "object"
+version = "0.28.2"
+source = "git+https://github.com/Amanieu/object?branch=arm64_macho_write#c136527168d76d929740764e5fcc0732ee3027d0"
+dependencies = [
  "crc32fast",
+ "hashbrown 0.11.2",
  "indexmap",
  "memchr",
 ]
@@ -2915,7 +2924,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "loupe",
- "object",
+ "object 0.28.2",
  "rayon",
  "regex",
  "rustc_version 0.4.0",
@@ -3016,7 +3025,7 @@ dependencies = [
  "leb128",
  "libloading",
  "loupe",
- "object",
+ "object 0.28.2",
  "rkyv",
  "serde",
  "tempfile",
@@ -3093,7 +3102,7 @@ dependencies = [
 name = "wasmer-object"
 version = "2.1.1"
 dependencies = [
- "object",
+ "object 0.28.2",
  "thiserror",
  "wasmer-compiler",
  "wasmer-types",

@@ -14,16 +14,16 @@ use enum_iterator::IntoEnumIterator;
 use object::{
     elf, macho,
     write::{Object, Relocation, SectionId, StandardSection, Symbol, SymbolId, SymbolSection},
-    RelocationEncoding, RelocationKind, SymbolFlags, SymbolKind, SymbolScope,
+    BinaryFormat, RelocationEncoding, RelocationKind, SymbolFlags, SymbolKind, SymbolScope,
 };
-use wasmer_compiler::{Architecture, BinaryFormat, Target};
+use wasmer_compiler::{Architecture, Target};
 use wasmer_vm::libcalls::LibCall;
 
 /// Symbol exported from the dynamic library which points to the trampoline table.
 pub const WASMER_TRAMPOLINES_SYMBOL: &[u8] = b"WASMER_TRAMPOLINES";
 
 /// Internal symbol with local scope that can't be preempted by external symbols.
-const WASMER_TRAMPOLINES_SYMBOL_INTERNAL: &[u8] = b"__WASMER_TRAMPOLINES";
+const WASMER_TRAMPOLINES_SYMBOL_INTERNAL: &[u8] = b"__WASMER_TRAMPOLINE0";
 
 // SystemV says that both x16 and x17 are available as intra-procedural scratch
 // registers but Apple's ABI restricts us to use x17.
@@ -40,7 +40,7 @@ const X86_64_TRAMPOLINE: [u8; 6] = [0xff, 0x25, 0x00, 0x00, 0x00, 0x00];
 fn emit_trampoline(
     obj: &mut Object,
     text: SectionId,
-    trampoline_table: SymbolId,
+    trampoline_table_symbols: &[SymbolId],
     libcall: LibCall,
     target: &Target,
 ) {
@@ -58,12 +58,12 @@ fn emit_trampoline(
 
     match target.triple().architecture {
         Architecture::Aarch64(_) => {
-            let (reloc1, reloc2) = match target.triple().binary_format {
+            let (reloc1, reloc2) = match obj.format() {
                 BinaryFormat::Elf => (
                     RelocationKind::Elf(elf::R_AARCH64_ADR_PREL_PG_HI21),
                     RelocationKind::Elf(elf::R_AARCH64_LDST64_ABS_LO12_NC),
                 ),
-                BinaryFormat::Macho => (
+                BinaryFormat::MachO => (
                     RelocationKind::MachO {
                         value: macho::ARM64_RELOC_PAGE21,
                         relative: true,
@@ -83,8 +83,8 @@ fn emit_trampoline(
                     size: 32,
                     kind: reloc1,
                     encoding: RelocationEncoding::Generic,
-                    symbol: trampoline_table,
-                    addend: libcall as i64 * 8,
+                    symbol: trampoline_table_symbols[libcall as usize],
+                    addend: 0,
                 },
             )
             .unwrap();
@@ -95,8 +95,8 @@ fn emit_trampoline(
                     size: 32,
                     kind: reloc2,
                     encoding: RelocationEncoding::Generic,
-                    symbol: trampoline_table,
-                    addend: libcall as i64 * 8,
+                    symbol: trampoline_table_symbols[libcall as usize],
+                    addend: 0,
                 },
             )
             .unwrap();
@@ -110,10 +110,10 @@ fn emit_trampoline(
                     size: 32,
                     kind: RelocationKind::Relative,
                     encoding: RelocationEncoding::Generic,
-                    symbol: trampoline_table,
+                    symbol: trampoline_table_symbols[libcall as usize],
                     // -4 because RIP-relative addressing starts from the end of
                     // the instruction.
-                    addend: libcall as i64 * 8 - 4,
+                    addend: -4,
                 },
             )
             .unwrap();
@@ -127,12 +127,6 @@ pub fn emit_trampolines(obj: &mut Object, target: &Target) {
     let text = obj.section_id(StandardSection::Text);
     let bss = obj.section_id(StandardSection::UninitializedData);
 
-    // We need to create 2 symbols here:
-    // - one with local scope that the trampolines point to.
-    // - one with global scope that is exported from the dynamic library.
-    //
-    // This is necessary because we can't point to a global scope symbol with
-    // non-GOT relocations.
     let trampoline_table = obj.add_symbol(Symbol {
         name: WASMER_TRAMPOLINES_SYMBOL.to_vec(),
         value: 0,
@@ -143,24 +137,27 @@ pub fn emit_trampolines(obj: &mut Object, target: &Target) {
         section: SymbolSection::Section(bss),
         flags: SymbolFlags::None,
     });
-    obj.add_symbol_bss(trampoline_table, bss, LibCall::VARIANT_COUNT as u64 * 8, 8);
+    let table_offset =
+        obj.add_symbol_bss(trampoline_table, bss, LibCall::VARIANT_COUNT as u64 * 8, 8);
 
-    // Make an internal alias of WASMER_TRAMPOLINES_SYMBOL.
-    let trampoline_table_internal = obj.add_symbol(Symbol {
-        name: WASMER_TRAMPOLINES_SYMBOL_INTERNAL.to_vec(),
-        value: 0,
-        size: 0,
-        kind: SymbolKind::Data,
-        scope: SymbolScope::Compilation,
-        weak: false,
-        section: SymbolSection::Section(bss),
-        flags: SymbolFlags::None,
-    });
-    let &Symbol { value, size, .. } = obj.symbol(trampoline_table);
-    obj.set_symbol_data(trampoline_table_internal, text, value, size);
+    // Create a symbol for each entry in the table. We could avoid this and use
+    // an addend, but this isn't supported in all object formats.
+    let mut trampoline_table_symbols = vec![];
+    for libcall in LibCall::into_enum_iter() {
+        trampoline_table_symbols.push(obj.add_symbol(Symbol {
+            name: format!("__WASMER_TRAMPOLINE{}", libcall as usize).into_bytes(),
+            value: table_offset + libcall as u64 * 8,
+            size: 0,
+            kind: SymbolKind::Data,
+            scope: SymbolScope::Compilation,
+            weak: false,
+            section: SymbolSection::Section(bss),
+            flags: SymbolFlags::None,
+        }));
+    }
 
     for libcall in LibCall::into_enum_iter() {
-        emit_trampoline(obj, text, trampoline_table_internal, libcall, target);
+        emit_trampoline(obj, text, &trampoline_table_symbols, libcall, target);
     }
 }
 
