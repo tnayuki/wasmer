@@ -1416,7 +1416,7 @@ dependencies = [
 [[package]]
 name = "object"
 version = "0.28.2"
-source = "git+https://github.com/Amanieu/object?branch=arm64_macho_write#c136527168d76d929740764e5fcc0732ee3027d0"
+source = "git+https://github.com/Amanieu/object?branch=wasmer#3dad33d218df5df57684e194bd97de61391ff0a1"
 dependencies = [
  "crc32fast",
  "hashbrown 0.11.2",
