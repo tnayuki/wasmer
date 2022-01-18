@@ -244,7 +244,7 @@ impl DylibArtifact {
                         get_object_for_target(&target_triple).map_err(to_compile_error)?;
                     emit_trampolines(&mut obj, engine.target());
                     if obj.format() == BinaryFormat::Coff {
-                        obj.add_coff_exports(CoffExportStyle::Msvc);
+                        obj.add_coff_exports(CoffExportStyle::Gnu);
                     }
                     let file = tempfile::Builder::new()
                         .prefix("wasmer_dylib_")
@@ -291,7 +291,7 @@ impl DylibArtifact {
                 emit_compilation(&mut obj, compilation, &symbol_registry, &target_triple)
                     .map_err(to_compile_error)?;
                 if obj.format() == BinaryFormat::Coff {
-                    obj.add_coff_exports(CoffExportStyle::Msvc);
+                    obj.add_coff_exports(CoffExportStyle::Gnu);
                 }
                 let file = tempfile::Builder::new()
                     .prefix("wasmer_dylib_")
