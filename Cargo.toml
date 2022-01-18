@@ -296,4 +296,4 @@ path = "examples/features.rs"
 required-features = ["cranelift"]
 
 [patch.crates-io]
-object = { git = "https://github.com/Amanieu/object", branch = "wasmer" }
+object = { git = "https://github.com/gimli-rs/object" }
