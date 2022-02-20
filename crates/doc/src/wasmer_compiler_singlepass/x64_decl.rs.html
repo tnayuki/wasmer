@@ -267,34 +267,13 @@
 <span id="267">267</span>
 <span id="268">268</span>
 <span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
 </pre><pre class="rust"><code><span class="doccomment">//! X64 structures.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common_decl</span>::{<span class="ident">MachineState</span>, <span class="ident">MachineValue</span>, <span class="ident">RegisterIndex</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::location::CombinedRegister</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::location::Reg</span> <span class="kw">as</span> <span class="ident">AbstractReg</span>;
 <span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
+<span class="kw">use</span> <span class="ident">std::slice::Iter</span>;
 <span class="kw">use</span> <span class="ident">wasmer_compiler::CallingConvention</span>;
 <span class="kw">use</span> <span class="ident">wasmer_types::Type</span>;
 
@@ -358,7 +337,13 @@
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
     <span class="kw">fn</span> <span class="ident">from_index</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">GPR</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">REGS</span>: [<span class="ident">GPR</span>; <span class="number">16</span>] <span class="op">=</span> [
+        <span class="kw">match</span> <span class="ident">n</span> {
+            <span class="number">0</span>..<span class="op">=</span><span class="number">15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">GPR::iterator</span>().<span class="ident">nth</span>(<span class="ident">n</span>).<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
+        }
+    }
+    <span class="kw">fn</span> <span class="ident">iterator</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">GPR</span><span class="op">&gt;</span> {
+        <span class="kw">static</span> <span class="ident">GPRS</span>: [<span class="ident">GPR</span>; <span class="number">16</span>] <span class="op">=</span> [
             <span class="ident">GPR::RAX</span>,
             <span class="ident">GPR::RCX</span>,
             <span class="ident">GPR::RDX</span>,
@@ -376,10 +361,7 @@
             <span class="ident">GPR::R14</span>,
             <span class="ident">GPR::R15</span>,
         ];
-        <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="number">0</span>..<span class="op">=</span><span class="number">15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">REGS</span>[<span class="ident">n</span>]),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
-        }
+        <span class="ident">GPRS</span>.<span class="ident">iter</span>()
     }
 }
 
@@ -398,7 +380,13 @@
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
     <span class="kw">fn</span> <span class="ident">from_index</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">XMM</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">REGS</span>: [<span class="ident">XMM</span>; <span class="number">16</span>] <span class="op">=</span> [
+        <span class="kw">match</span> <span class="ident">n</span> {
+            <span class="number">0</span>..<span class="op">=</span><span class="number">15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">XMM::iterator</span>().<span class="ident">nth</span>(<span class="ident">n</span>).<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
+        }
+    }
+    <span class="kw">fn</span> <span class="ident">iterator</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">XMM</span><span class="op">&gt;</span> {
+        <span class="kw">static</span> <span class="ident">XMMS</span>: [<span class="ident">XMM</span>; <span class="number">16</span>] <span class="op">=</span> [
             <span class="ident">XMM::XMM0</span>,
             <span class="ident">XMM::XMM1</span>,
             <span class="ident">XMM::XMM2</span>,
@@ -416,10 +404,7 @@
             <span class="ident">XMM::XMM14</span>,
             <span class="ident">XMM::XMM15</span>,
         ];
-        <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="number">0</span>..<span class="op">=</span><span class="number">15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">REGS</span>[<span class="ident">n</span>]),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
-        }
+        <span class="ident">XMMS</span>.<span class="ident">iter</span>()
     }
 }
 
@@ -455,35 +440,6 @@
             <span class="number">0</span>..<span class="op">=</span><span class="number">15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">X64Register::GPR</span>(<span class="ident">GPR::from_index</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">unwrap</span>()),
             <span class="number">17</span>..<span class="op">=</span><span class="number">24</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">X64Register::XMM</span>(<span class="ident">XMM::from_index</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">17</span>).<span class="ident">unwrap</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-        })
-    }
-
-    <span class="doccomment">/// Returns the instruction prefix for `movq %this_reg, ?(%rsp)`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To build an instruction, append the memory location as a 32-bit</span>
-    <span class="doccomment">/// offset to the stack pointer to this prefix.</span>
-    <span class="kw">fn</span> <span class="ident">_prefix_mov_to_stack</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">X64Register::GPR</span>(<span class="ident">gpr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">gpr</span> {
-                <span class="ident">GPR::RDI</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x48</span>, <span class="number">0x89</span>, <span class="number">0xbc</span>, <span class="number">0x24</span>],
-                <span class="ident">GPR::RSI</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x48</span>, <span class="number">0x89</span>, <span class="number">0xb4</span>, <span class="number">0x24</span>],
-                <span class="ident">GPR::RDX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x48</span>, <span class="number">0x89</span>, <span class="number">0x94</span>, <span class="number">0x24</span>],
-                <span class="ident">GPR::RCX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x48</span>, <span class="number">0x89</span>, <span class="number">0x8c</span>, <span class="number">0x24</span>],
-                <span class="ident">GPR::R8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x4c</span>, <span class="number">0x89</span>, <span class="number">0x84</span>, <span class="number">0x24</span>],
-                <span class="ident">GPR::R9</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x4c</span>, <span class="number">0x89</span>, <span class="number">0x8c</span>, <span class="number">0x24</span>],
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            },
-            <span class="ident">X64Register::XMM</span>(<span class="ident">xmm</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">xmm</span> {
-                <span class="ident">XMM::XMM0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x66</span>, <span class="number">0x0f</span>, <span class="number">0xd6</span>, <span class="number">0x84</span>, <span class="number">0x24</span>],
-                <span class="ident">XMM::XMM1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x66</span>, <span class="number">0x0f</span>, <span class="number">0xd6</span>, <span class="number">0x8c</span>, <span class="number">0x24</span>],
-                <span class="ident">XMM::XMM2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x66</span>, <span class="number">0x0f</span>, <span class="number">0xd6</span>, <span class="number">0x94</span>, <span class="number">0x24</span>],
-                <span class="ident">XMM::XMM3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x66</span>, <span class="number">0x0f</span>, <span class="number">0xd6</span>, <span class="number">0x9c</span>, <span class="number">0x24</span>],
-                <span class="ident">XMM::XMM4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x66</span>, <span class="number">0x0f</span>, <span class="number">0xd6</span>, <span class="number">0xa4</span>, <span class="number">0x24</span>],
-                <span class="ident">XMM::XMM5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x66</span>, <span class="number">0x0f</span>, <span class="number">0xd6</span>, <span class="number">0xac</span>, <span class="number">0x24</span>],
-                <span class="ident">XMM::XMM6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x66</span>, <span class="number">0x0f</span>, <span class="number">0xd6</span>, <span class="number">0xb4</span>, <span class="number">0x24</span>],
-                <span class="ident">XMM::XMM7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="number">0x66</span>, <span class="number">0x0f</span>, <span class="number">0xd6</span>, <span class="number">0xbc</span>, <span class="number">0x24</span>],
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            },
         })
     }
 }
